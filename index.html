@@ -316,14 +316,15 @@
 <div class="container">
     <div class="header">
         <h1>◉ MATCHES PRO — CONFIRMATION ENGINE</h1>
-        <div class="subtitle">PAT-only Deriv connection | Video-style signal deck | Demo/Real via token</div>
+        <div class="subtitle">PAT-only Deriv connection | Demo/Real via PAT token</div>
 
         <div class="risk-note">
             <strong>⚠️ Honest risk note:</strong>
             Volatility-index digits are certified random (~10% each). No site — including the one in any video — can predict them.
             This deck reproduces the discipline workflow:
-            <strong>analyze → confirm → timed entry window → cooldown</strong>.
-            Matches pro profit ×8.5 / Differs ×0.95 simulated. Use demo-account testing until your ledger proves itself.
+            <strong>analyze → confirm → timed entry window → cooldown</strong>
+            and paper-trades every window on live ticks so you can audit real win rates against breakeven before risking money.
+            Matches pro profit ×8.5 / Differs ×0.95 simulated. Demo-account test only until your ledger proves itself.
         </div>
     </div>
 
@@ -334,7 +335,7 @@
 
                 <div class="form-group">
                     <label>Personal Access Token (PAT)</label>
-                    <input type="password" id="patToken" placeholder="Paste your Deriv PAT token">
+                    <input type="password" id="patToken" autocomplete="off" placeholder="Paste PAT only">
                 </div>
 
                 <div style="display: flex; gap: 10px;">
@@ -347,8 +348,8 @@
                 </div>
 
                 <div class="small-note">
-                    PAT only. No OAuth. The account type depends on the token you paste.
-                    Use a demo token first.
+                    PAT only. No OAuth. Your App ID is already built into this version.
+                    The account type depends on the PAT token you paste.
                 </div>
             </div>
 
@@ -375,7 +376,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Stake per trade ($)</label>
+                    <label>Paper/Live stake per trade ($)</label>
                     <input type="number" id="stake" value="1.00" step="0.10" min="0.10">
                 </div>
 
@@ -391,7 +392,8 @@
                 <button id="btnStop" class="btn-danger" style="margin-top: 10px; display: none;">⏹ STOP ENGINE</button>
 
                 <div class="small-note">
-                    Live mode places real demo/real trades depending on the PAT token.
+                    Live mode places trades on the account connected by the PAT token.
+                    Use demo first.
                 </div>
             </div>
         </div>
@@ -449,10 +451,9 @@
     // ============================================================
     // PAT-ONLY DERIV CONFIG
     // ============================================================
-    // Deriv WebSocket requires an app_id.
-    // This app uses a fixed app_id so the user only enters PAT.
-    // Replace with your own app_id if you have one.
-    const DERIV_APP_ID = "1089";
+    // Your provided App ID is built in.
+    // The user only enters the PAT token.
+    const DERIV_APP_ID = "34oBstZvTcMNevzG4EXEt";
 
     const els = {
         patToken: document.getElementById("patToken"),
@@ -594,10 +595,19 @@
         }
 
         if (state.ws) {
+            state.ws.onopen = null;
+            state.ws.onmessage = null;
+            state.ws.onerror = null;
+            state.ws.onclose = null;
             state.ws.close();
         }
 
-        updateConnectionStatus('<span class="status-dot dot-orange"></span> Connecting...');
+        state.authorized = false;
+
+        els.btnConnect.disabled = true;
+        els.btnDisconnect.disabled = true;
+
+        updateConnectionStatus('<span class="status-dot dot-orange"></span> CONNECTING...');
         log("Connecting to Deriv using PAT only...", "info");
 
         const url = `wss://ws.derivws.com/websockets/socket?app_id=${DERIV_APP_ID}`;
@@ -660,6 +670,9 @@
 
             if (data.msg_type === "authorize") {
                 updateConnectionStatus('<span class="status-dot dot-red"></span> Authorization failed');
+                if (state.ws) {
+                    state.ws.close();
+                }
             }
 
             if (["proposal", "buy", "proposal_open_contract"].includes(data.msg_type)) {
