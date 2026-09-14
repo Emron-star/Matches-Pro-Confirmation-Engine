@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matches Pro — Confirmation Engine (PAT Only)</title>
+<style>
+    :root {
+        --bg: #0f1115;
+        --panel: #1a1d24;
+        --border: #2a2e37;
+        --text: #e0e0e0;
+        --muted: #888;
+        --accent: #00d2ff;
+        --success: #00ff88;
+        --danger: #ff4757;
+        --warning: #ffa502;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+        line-height: 1.45;
+    }
+
+    .container {
+        max-width: 1250px;
+        margin: 0 auto;
+    }
+
+    .header {
+        text-align: center;
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        margin: 0;
+        color: var(--accent);
+        letter-spacing: 1px;
+    }
+
+    .header .subtitle {
+        color: var(--muted);
+        font-size: 0.92em;
+        margin-top: 6px;
+    }
+
+    .risk-note {
+        background: #2d1b1b;
+        border: 1px solid var(--danger);
+        color: #ffcccc;
+        padding: 12px;
+        border-radius: 6px;
+        font-size: 0.88em;
+        margin-top: 15px;
+        text-align: left;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 850px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .panel h3 {
+        margin-top: 0;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+        color: var(--accent);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.9em;
+        color: var(--muted);
+    }
+
+    input,
+    select,
+    button {
+        width: 100%;
+        padding: 10px;
+        background: #0f1115;
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 4px;
+        font-size: 1em;
+    }
+
+    button {
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+    .btn-primary {
+        background: var(--accent);
+        color: #000;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: #00b8e6;
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-success {
+        background: var(--success);
+        color: #000;
+        border: none;
+    }
+
+    .mode-toggles {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .mode-btn {
+        padding: 8px 5px;
+        background: #2a2e37;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.82em;
+    }
+
+    .mode-btn.active {
+        background: var(--accent);
+        color: #000;
+        border-color: var(--accent);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-box {
+        background: #0f1115;
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
+        border: 1px solid var(--border);
+    }
+
+    .stat-label {
+        font-size: 0.8em;
+        color: var(--muted);
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    .profit {
+        color: var(--success);
+    }
+
+    .loss {
+        color: var(--danger);
+    }
+
+    .digit-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .digit-box {
+        aspect-ratio: 1;
+        background: #2a2e37;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        transition: 0.25s;
+    }
+
+    .digit-box .num {
+        font-size: 1.8em;
+        font-weight: bold;
+    }
+
+    .digit-box .freq {
+        font-size: 0.8em;
+        color: var(--muted);
+    }
+
+    .digit-box.hot {
+        border-color: var(--success);
+        background: rgba(0, 255, 136, 0.10);
+    }
+
+    .digit-box.cold {
+        border-color: var(--danger);
+        background: rgba(255, 71, 87, 0.10);
+    }
+
+    .digit-box.target {
+        border-color: var(--warning);
+        background: rgba(255, 165, 2, 0.18);
+        box-shadow: 0 0 15px rgba(255, 165, 2, 0.35);
+    }
+
+    .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #0f1115;
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-family: monospace;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .dot-red {
+        background: var(--danger);
+    }
+
+    .dot-green {
+        background: var(--success);
+    }
+
+    .dot-orange {
+        background: var(--warning);
+    }
+
+    .console {
+        background: #000;
+        color: #0f0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.86em;
+        padding: 15px;
+        height: 230px;
+        overflow-y: auto;
+        border: 1px solid #333;
+        border-radius: 4px;
+    }
+
+    .log-info {
+        color: #00d2ff;
+    }
+
+    .log-success {
+        color: #00ff88;
+    }
+
+    .log-error {
+        color: #ff4757;
+    }
+
+    .log-warn {
+        color: #ffa502;
+    }
+
+    .small-note {
+        font-size: 0.82em;
+        color: var(--muted);
+        margin-top: 8px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>◉ MATCHES PRO — CONFIRMATION ENGINE</h1>
+        <div class="subtitle">PAT-only Deriv connection | Video-style signal deck | Demo/Real via token</div>
+
+        <div class="risk-note">
+            <strong>⚠️ Honest risk note:</strong>
+            Volatility-index digits are certified random (~10% each). No site — including the one in any video — can predict them.
+            This deck reproduces the discipline workflow:
+            <strong>analyze → confirm → timed entry window → cooldown</strong>.
+            Matches pro profit ×8.5 / Differs ×0.95 simulated. Use demo-account testing until your ledger proves itself.
+        </div>
+    </div>
+
+    <div class="grid">
+        <div>
+            <div class="panel">
+                <h3>Deriv PAT Connection</h3>
+
+                <div class="form-group">
+                    <label>Personal Access Token (PAT)</label>
+                    <input type="password" id="patToken" placeholder="Paste your Deriv PAT token">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button id="btnConnect" class="btn-primary">Connect PAT</button>
+                    <button id="btnDisconnect" class="btn-danger" disabled>Disconnect</button>
+                </div>
+
+                <div id="connectionStatus" style="margin-top: 15px; font-size: 0.9em; color: var(--muted);">
+                    <span class="status-dot dot-red"></span> Disconnected
+                </div>
+
+                <div class="small-note">
+                    PAT only. No OAuth. The account type depends on the token you paste.
+                    Use a demo token first.
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 20px;">
+                <h3>Trading Parameters</h3>
+
+                <div class="form-group">
+                    <label>Market</label>
+                    <select id="market">
+                        <option value="R_100">Volatility 100 Index</option>
+                        <option value="R_75">Volatility 75 Index</option>
+                        <option value="R_50">Volatility 50 Index</option>
+                        <option value="R_25">Volatility 25 Index</option>
+                        <option value="R_10">Volatility 10 Index</option>
+                    </select>
+                </div>
+
+                <label>Signal Mode</label>
+                <div class="mode-toggles">
+                    <button class="mode-btn" data-mode="PRO">MATCHES PRO</button>
+                    <button class="mode-btn" data-mode="MATCHES">MATCHES</button>
+                    <button class="mode-btn" data-mode="DIFFERS">DIFFERS</button>
+                    <button class="mode-btn active" data-mode="BOTH">BOTH</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Stake per trade ($)</label>
+                    <input type="number" id="stake" value="1.00" step="0.10" min="0.10">
+                </div>
+
+                <div class="form-group">
+                    <label>Execution</label>
+                    <select id="executionMode">
+                        <option value="paper" selected>Paper (simulate results)</option>
+                        <option value="live">Live (place Deriv trades via PAT)</option>
+                    </select>
+                </div>
+
+                <button id="btnStart" class="btn-success" style="margin-top: 10px;">▶ START ENGINE</button>
+                <button id="btnStop" class="btn-danger" style="margin-top: 10px; display: none;">⏹ STOP ENGINE</button>
+
+                <div class="small-note">
+                    Live mode places real demo/real trades depending on the PAT token.
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="panel">
+                <h3>Performance Dashboard</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Trades</div>
+                        <div class="stat-value" id="statTrades">0</div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-label">Wins</div>
+                        <div class="stat-value profit" id="statWins">0</div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-label">Win Rate</div>
+                        <div class="stat-value" id="statWinRate">0%</div>
+                    </div>
+
+                    <div class="stat-box">
+                        <div class="stat-label">P/L</div>
+                        <div class="stat-value" id="statPL">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="status-bar">
+                    <div>
+                        <span class="status-dot dot-orange" id="engineDot"></span>
+                        <span id="engineStatus">Engine Idle</span>
+                    </div>
+
+                    <div>
+                        Last Tick: <strong id="lastTick">-</strong>
+                    </div>
+                </div>
+
+                <label>Digit Frequency Map</label>
+                <div class="digit-grid" id="digitGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" style="margin-top: 20px;">
+        <h3>System Console</h3>
+        <div class="console" id="console"></div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // PAT-ONLY DERIV CONFIG
+    // ============================================================
+    // Deriv WebSocket requires an app_id.
+    // This app uses a fixed app_id so the user only enters PAT.
+    // Replace with your own app_id if you have one.
+    const DERIV_APP_ID = "1089";
+
+    const els = {
+        patToken: document.getElementById("patToken"),
+        btnConnect: document.getElementById("btnConnect"),
+        btnDisconnect: document.getElementById("btnDisconnect"),
+        connectionStatus: document.getElementById("connectionStatus"),
+
+        market: document.getElementById("market"),
+        stake: document.getElementById("stake"),
+        executionMode: document.getElementById("executionMode"),
+
+        btnStart: document.getElementById("btnStart"),
+        btnStop: document.getElementById("btnStop"),
+
+        statTrades: document.getElementById("statTrades"),
+        statWins: document.getElementById("statWins"),
+        statWinRate: document.getElementById("statWinRate"),
+        statPL: document.getElementById("statPL"),
+
+        engineDot: document.getElementById("engineDot"),
+        engineStatus: document.getElementById("engineStatus"),
+        lastTick: document.getElementById("lastTick"),
+        digitGrid: document.getElementById("digitGrid"),
+        console: document.getElementById("console")
+    };
+
+    const state = {
+        ws: null,
+        authorized: false,
+        running: false,
+
+        loginid: "",
+        currency: "USD",
+
+        mode: "BOTH",
+        market: "R_100",
+
+        ticks: [],
+        freq: Array(10).fill(0),
+
+        phase: "IDLE",
+        targetDigit: null,
+        signalType: null,
+        signalLabel: "",
+
+        countdown: 3,
+        countdownTimer: null,
+
+        cooldownTicks: 0,
+
+        awaitingResult: false,
+        proposalPending: false,
+        activeContractId: null,
+        pendingPaper: null,
+
+        trades: 0,
+        wins: 0,
+        pl: 0
+    };
+
+    // ============================================================
+    // LOGGING
+    // ============================================================
+    function log(message, type = "info") {
+        const time = new Date().toLocaleTimeString();
+        const div = document.createElement("div");
+        div.className = `log-${type}`;
+        div.textContent = `[${time}] ${message}`;
+        els.console.appendChild(div);
+        els.console.scrollTop = els.console.scrollHeight;
+    }
+
+    // ============================================================
+    // UI HELPERS
+    // ============================================================
+    function updateConnectionStatus(html) {
+        els.connectionStatus.innerHTML = html;
+    }
+
+    function updateEngineStatus(text, color = "orange") {
+        els.engineStatus.textContent = text;
+        els.engineDot.className = `status-dot dot-${color}`;
+    }
+
+    function updateStats() {
+        els.statTrades.textContent = state.trades;
+        els.statWins.textContent = state.wins;
+
+        const winRate = state.trades > 0
+            ? ((state.wins / state.trades) * 100).toFixed(1) + "%"
+            : "0%";
+
+        els.statWinRate.textContent = winRate;
+
+        els.statPL.textContent = `$${state.pl.toFixed(2)}`;
+        els.statPL.className = `stat-value ${state.pl >= 0 ? "profit" : "loss"}`;
+    }
+
+    function updateDigitGrid() {
+        els.digitGrid.innerHTML = "";
+
+        const maxFreq = Math.max(...state.freq);
+        const minFreq = Math.min(...state.freq);
+
+        for (let i = 0; i < 10; i++) {
+            const box = document.createElement("div");
+            box.className = "digit-box";
+
+            if (state.targetDigit === i) {
+                box.classList.add("target");
+            } else if (state.freq[i] === maxFreq && maxFreq > 0) {
+                box.classList.add("hot");
+            } else if (state.freq[i] === minFreq) {
+                box.classList.add("cold");
+            }
+
+            box.innerHTML = `
+                <div class="num">${i}</div>
+                <div class="freq">${state.freq[i]} hits</div>
+            `;
+
+            els.digitGrid.appendChild(box);
+        }
+    }
+
+    // ============================================================
+    // DERIV PAT WEBSOCKET
+    // ============================================================
+    function wsOpen() {
+        return state.ws && state.ws.readyState === WebSocket.OPEN;
+    }
+
+    function connectDeriv() {
+        const token = els.patToken.value.trim();
+
+        if (!token) {
+            log("Paste a Deriv PAT token first.", "error");
+            return;
+        }
+
+        if (state.ws) {
+            state.ws.close();
+        }
+
+        updateConnectionStatus('<span class="status-dot dot-orange"></span> Connecting...');
+        log("Connecting to Deriv using PAT only...", "info");
+
+        const url = `wss://ws.derivws.com/websockets/socket?app_id=${DERIV_APP_ID}`;
+        state.ws = new WebSocket(url);
+
+        state.ws.onopen = () => {
+            log("WebSocket connected. Authorizing with PAT...", "info");
+            state.ws.send(JSON.stringify({ authorize: token }));
+        };
+
+        state.ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleDerivMessage(data);
+        };
+
+        state.ws.onerror = () => {
+            log("WebSocket error.", "error");
+            updateConnectionStatus('<span class="status-dot dot-red"></span> WebSocket error');
+        };
+
+        state.ws.onclose = () => {
+            state.authorized = false;
+            state.running = false;
+            state.awaitingResult = false;
+            state.proposalPending = false;
+            state.activeContractId = null;
+            state.pendingPaper = null;
+
+            stopCountdown();
+
+            state.phase = "IDLE";
+            state.targetDigit = null;
+            state.signalType = null;
+            state.signalLabel = "";
+
+            els.btnConnect.disabled = false;
+            els.btnDisconnect.disabled = true;
+
+            els.btnStart.style.display = "block";
+            els.btnStop.style.display = "none";
+
+            updateConnectionStatus('<span class="status-dot dot-red"></span> Disconnected');
+            updateEngineStatus("Engine Idle", "orange");
+
+            log("Disconnected from Deriv.", "warn");
+        };
+    }
+
+    function disconnectDeriv() {
+        if (state.ws) {
+            state.ws.close();
+        }
+    }
+
+    function handleDerivMessage(data) {
+        if (data.error) {
+            if (data.msg_type !== "forget_all") {
+                log(`Deriv error: ${data.error.message}`, "error");
+            }
+
+            if (data.msg_type === "authorize") {
+                updateConnectionStatus('<span class="status-dot dot-red"></span> Authorization failed');
+            }
+
+            if (["proposal", "buy", "proposal_open_contract"].includes(data.msg_type)) {
+                state.proposalPending = false;
+                state.awaitingResult = false;
+                state.activeContractId = null;
+                enterCooldown(3);
+            }
+
+            return;
+        }
+
+        switch (data.msg_type) {
+            case "authorize":
+                state.authorized = true;
+                state.loginid = data.authorize.loginid;
+                state.currency = data.authorize.currency || "USD";
+
+                els.btnConnect.disabled = true;
+                els.btnDisconnect.disabled = false;
+
+                updateConnectionStatus(
+                    `<span class="status-dot dot-green"></span> PAT connected: ${state.loginid} | Balance: ${data.authorize.balance} ${state.currency}`
+                );
+
+                log(`PAT authorized. Account: ${state.loginid}`, "success");
+
+                if (state.running) {
+                    subscribeTicks();
+                }
+                break;
+
+            case "tick":
+                processTick(data.tick);
+                break;
+
+            case "proposal":
+                if (state.proposalPending && data.proposal && data.proposal.id) {
+                    log(`Proposal received. ID: ${data.proposal.id} | Ask: ${data.proposal.ask_price}`, "info");
+
+                    state.ws.send(JSON.stringify({
+                        buy: data.proposal.id,
+                        price: data.proposal.ask_price
+                    }));
+                }
+                break;
+
+            case "buy":
+                if (data.buy && data.buy.contract_id) {
+                    state.activeContractId = data.buy.contract_id;
+                    state.proposalPending = false;
+
+                    log(`Contract bought. ID: ${data.buy.contract_id}`, "success");
+
+                    state.ws.send(JSON.stringify({
+                        proposal_open_contract: 1,
+                        contract_id: data.buy.contract_id,
+                        subscribe: 1
+                    }));
+                }
+                break;
+
+            case "proposal_open_contract":
+                const contract = data.proposal_open_contract;
+
+                if (
+                    contract &&
+                    contract.is_sold &&
+                    contract.contract_id === state.activeContractId
+                ) {
+                    const profit = Number(contract.profit || 0);
+                    const isWin = profit > 0;
+
+                    state.activeContractId = null;
+                    handleTradeResult(isWin, profit, contract.contract_id);
+                }
+                break;
+        }
+    }
+
+    function subscribeTicks() {
+        if (!wsOpen()) return;
+
+        state.ws.send(JSON.stringify({ forget_all: "ticks" }));
+
+        state.ws.send(JSON.stringify({
+            ticks: state.market,
+            subscribe: 1
+        }));
+
+        log(`Subscribed to ticks: ${state.market}`, "success");
+    }
+
+    // ============================================================
+    // TICK PROCESSING
+    // ============================================================
+    function processTick(tick) {
+        const quote = tick.quote.toString();
+        const digit = parseInt(quote.slice(-1), 10);
+
+        if (Number.isNaN(digit)) return;
+
+        state.ticks.push(digit);
+
+        if (state.ticks.length > 100) {
+            state.ticks.shift();
+        }
+
+        updateFrequencies();
+        els.lastTick.textContent = digit;
+
+        if (state.pendingPaper) {
+            resolvePaperTrade(digit);
+            return;
+        }
+
+        if (state.awaitingResult || state.proposalPending || state.activeContractId) {
+            return;
+        }
+
+        if (!state.running) return;
+
+        runEngine(digit);
+    }
+
+    function updateFrequencies() {
+        state.freq.fill(0);
+
+        const recent = state.ticks.slice(-50);
+
+        recent.forEach(d => {
+            state.freq[d]++;
+        });
+
+        updateDigitGrid();
+    }
+
+    // ============================================================
+    // CONFIRMATION ENGINE
+    // ============================================================
+    function absentStreak(digit) {
+        let count = 0;
+
+        for (let i = state.ticks.length - 1; i >= 0; i--) {
+            if (state.ticks[i] === digit) break;
+            count++;
+        }
+
+        return count;
+    }
+
+    function recentCount(digit, lookback = 5) {
+        return state.ticks.slice(-lookback).filter(d => d === digit).length;
+    }
+
+    function findSignal(currentDigit) {
+        if (state.ticks.length < 20) return null;
+
+        const minFreq = Math.min(...state.freq);
+        const maxFreq = Math.max(...state.freq);
+
+        const coldDigit = state.freq.indexOf(minFreq);
+        const hotDigit = state.freq.indexOf(maxFreq);
+
+        const coldAbsent = absentStreak(coldDigit);
+        const hotRecent = recentCount(hotDigit, 5);
+
+        const differsOK = coldAbsent >= 8;
+        const matchesOK = currentDigit === hotDigit && state.freq[hotDigit] >= 5;
+        const proOK = currentDigit === hotDigit && state.freq[hotDigit] >= 7 && hotRecent >= 2;
+
+        const candidates = [];
+
+        if (proOK) {
+            candidates.push({
+                type: "DIGITMATCH",
+                digit: hotDigit,
+                score: state.freq[hotDigit] + hotRecent,
+                label: "MATCHES PRO"
+            });
+        }
+
+        if (matchesOK) {
+            candidates.push({
+                type: "DIGITMATCH",
+                digit: hotDigit,
+                score: state.freq[hotDigit],
+                label: "MATCHES"
+            });
+        }
+
+        if (differsOK) {
+            candidates.push({
+                type: "DIGITDIFF",
+                digit: coldDigit,
+                score: coldAbsent,
+                label: "DIFFERS"
+            });
+        }
+
+        if (!candidates.length) return null;
+
+        if (state.mode === "PRO") {
+            return candidates.find(c => c.label === "MATCHES PRO") || null;
+        }
+
+        if (state.mode === "MATCHES") {
+            return (
+                candidates.find(c => c.label === "MATCHES") ||
+                candidates.find(c => c.label === "MATCHES PRO") ||
+                null
+            );
+        }
+
+        if (state.mode === "DIFFERS") {
+            return candidates.find(c => c.label === "DIFFERS") || null;
+        }
+
+        if (state.mode === "BOTH") {
+            candidates.sort((a, b) => b.score - a.score);
+            return candidates[0];
+        }
+
+        return null;
+    }
+
+    function runEngine(currentDigit) {
+        if (state.phase === "ENTRY_WINDOW" || state.phase === "WAITING") {
+            return;
+        }
+
+        if (state.phase === "COOLDOWN") {
+            state.cooldownTicks--;
+
+            updateEngineStatus(`Cooldown: ${state.cooldownTicks} tick(s)`, "red");
+
+            if (state.cooldownTicks <= 0) {
+                state.phase = "ANALYZING";
+                updateEngineStatus("Analyzing...", "green");
+            }
+
+            return;
+        }
+
+        if (state.phase !== "ANALYZING") {
+            state.phase = "ANALYZING";
+        }
+
+        if (state.ticks.length < 20) {
+            updateEngineStatus("Collecting ticks...", "orange");
+            return;
+        }
+
+        const signal = findSignal(currentDigit);
+
+        if (signal) {
+            state.targetDigit = signal.digit;
+            state.signalType = signal.type;
+            state.signalLabel = signal.label;
+            state.phase = "ENTRY_WINDOW";
+            state.countdown = 3;
+
+            log(`Signal confirmed: ${signal.label} | Digit ${signal.digit}`, "warn");
+
+            startCountdown();
+        } else {
+            updateEngineStatus("Analyzing...", "green");
+        }
+    }
+
+    function startCountdown() {
+        stopCountdown();
+
+        updateEngineStatus(
+            `${state.signalLabel} ${state.targetDigit} in ${state.countdown}s`,
+            "orange"
+        );
+
+        state.countdownTimer = setInterval(() => {
+            state.countdown--;
+
+            if (state.countdown <= 0) {
+                stopCountdown();
+                executeTrade();
+            } else {
+                updateEngineStatus(
+                    `${state.signalLabel} ${state.targetDigit} in ${state.countdown}s`,
+                    "orange"
+                );
+            }
+        }, 1000);
+    }
+
+    function stopCountdown() {
+        if (state.countdownTimer) {
+            clearInterval(state.countdownTimer);
+            state.countdownTimer = null;
+        }
+    }
+
+    // ============================================================
+    // TRADE EXECUTION
+    // ============================================================
+    function executeTrade() {
+        if (!state.running) return;
+
+        const stake = Number(els.stake.value) || 1;
+        const type = state.signalType;
+        const digit = state.targetDigit;
+        const label = state.signalLabel;
+
+        if (!type || digit === null) {
+            state.phase = "ANALYZING";
+            return;
+        }
+
+        state.phase = "WAITING";
+        state.awaitingResult = true;
+
+        updateEngineStatus(`Waiting result: ${label} ${digit}`, "red");
+        log(`Trade request: ${label} | Digit ${digit} | Stake $${stake.toFixed(2)}`, "info");
+
+        const execution = els.executionMode.value;
+
+        if (execution === "live" && state.authorized && wsOpen()) {
+            state.proposalPending = true;
+
+            state.ws.send(JSON.stringify({
+                proposal: 1,
+                amount: stake,
+                basis: "stake",
+                contract_type: type,
+                currency: state.currency,
+                duration: 1,
+                duration_unit: "t",
+                barrier: String(digit),
+                symbol: state.market
+            }));
+
+            log("Live proposal sent to Deriv.", "info");
+        } else {
+            if (execution === "live") {
+                log("Live execution unavailable. Falling back to paper trade.", "warn");
+            }
+
+            state.pendingPaper = {
+                type,
+                digit,
+                stake,
+                label
+            };
+
+            log("Paper trade placed. Waiting for next tick to resolve.", "warn");
+        }
+    }
+
+    function resolvePaperTrade(currentDigit) {
+        const paper = state.pendingPaper;
+        state.pendingPaper = null;
+
+        if (!paper) return;
+
+        let isWin = false;
+        let profit = 0;
+
+        if (paper.type === "DIGITDIFF") {
+            isWin = currentDigit !== paper.digit;
+            profit = isWin ? paper.stake * 0.95 : -paper.stake;
+        } else {
+            isWin = currentDigit === paper.digit;
+            profit = isWin ? paper.stake * 8.5 : -paper.stake;
+        }
+
+        log(
+            `Paper result: ${paper.label} ${paper.digit} | Tick ${currentDigit} | ${isWin ? "WIN" : "LOSS"}`,
+            isWin ? "success" : "error"
+        );
+
+        handleTradeResult(isWin, profit, "PAPER");
+    }
+
+    function handleTradeResult(isWin, profit, reference) {
+        state.trades++;
+
+        if (isWin) {
+            state.wins++;
+        }
+
+        state.pl += profit;
+
+        updateStats();
+
+        if (isWin) {
+            log(`WIN settled. Ref: ${reference} | Profit: +$${profit.toFixed(2)}`, "success");
+        } else {
+            log(`LOSS settled. Ref: ${reference} | Loss: -$${Math.abs(profit).toFixed(2)}`, "error");
+        }
+
+        state.awaitingResult = false;
+        state.proposalPending = false;
+        state.activeContractId = null;
+
+        enterCooldown(5);
+    }
+
+    function enterCooldown(ticks) {
+        state.phase = "COOLDOWN";
+        state.cooldownTicks = ticks;
+        state.targetDigit = null;
+        state.signalType = null;
+        state.signalLabel = "";
+
+        updateDigitGrid();
+        updateEngineStatus(`Cooldown: ${ticks} tick(s)`, "red");
+    }
+
+    // ============================================================
+    // ENGINE CONTROL
+    // ============================================================
+    function startEngine() {
+        if (!state.authorized) {
+            log("Connect PAT first before starting the engine.", "error");
+            return;
+        }
+
+        if (state.running) return;
+
+        state.running = true;
+        state.phase = "ANALYZING";
+
+        els.btnStart.style.display = "none";
+        els.btnStop.style.display = "block";
+
+        const execution = els.executionMode.value;
+
+        log(`Engine started. Execution: ${execution.toUpperCase()}`, "success");
+
+        if (execution === "live") {
+            log("LIVE MODE ACTIVE. Trades will be sent to Deriv using PAT.", "warn");
+        } else {
+            log("Paper mode active. Results will be simulated.", "info");
+        }
+
+        subscribeTicks();
+        updateEngineStatus("Analyzing...", "green");
+    }
+
+    function stopEngine() {
+        if (!state.running) return;
+
+        state.running = false;
+
+        stopCountdown();
+
+        if (!state.awaitingResult) {
+            state.phase = "IDLE";
+            state.targetDigit = null;
+            state.signalType = null;
+            state.signalLabel = "";
+        }
+
+        els.btnStart.style.display = "block";
+        els.btnStop.style.display = "none";
+
+        updateEngineStatus("Engine Idle", "orange");
+        updateDigitGrid();
+
+        log("Engine stopped.", "warn");
+    }
+
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+    els.btnConnect.addEventListener("click", connectDeriv);
+    els.btnDisconnect.addEventListener("click", disconnectDeriv);
+
+    els.btnStart.addEventListener("click", startEngine);
+    els.btnStop.addEventListener("click", stopEngine);
+
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            state.mode = btn.dataset.mode;
+            log(`Signal mode changed to ${state.mode}`, "info");
+        });
+    });
+
+    els.market.addEventListener("change", () => {
+        state.market = els.market.value;
+        state.ticks = [];
+        state.freq.fill(0);
+
+        updateDigitGrid();
+        els.lastTick.textContent = "-";
+
+        log(`Market changed to ${state.market}`, "info");
+
+        if (state.authorized && state.running) {
+            subscribeTicks();
+        }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    updateStats();
+    updateDigitGrid();
+    updateEngineStatus("Engine Idle", "orange");
+    updateConnectionStatus('<span class="status-dot dot-red"></span> Disconnected');
+</script>
+
+</body>
+</html>
